@@ -300,10 +300,21 @@ Isso significa: "Este voo tem 78% de chance de atrasar"
 
 ## Funcionalidades Extras (Se Der Tempo)
 
-- Salvar histórico de previsões em um banco de dados
+### 1. Front-end com Thymeleaf
+
+Adicionar dependência `spring-boot-starter-thymeleaf` e criar páginas HTML em `templates/` com formulário de entrada e exibição de resultados.
+
+### 2. PostgreSQL + Looker Studio
+
+Adicionar `spring-boot-starter-data-jpa` e `postgresql` no pom.xml, configurar conexão no `application.properties` e criar entidade JPA para salvar histórico de previsões.
+Conectar o Looker Studio ao PostgreSQL para criar dashboards de análise.
+
+### 3. Outras Funcionalidades
+
 - Criar endpoint para estatísticas (ex: % de voos atrasados no dia)
 - Fazer testes automatizados
 - Containerizar com Docker
+- Implementar cache com Redis para previsões frequentes
 
 ## Integração com Data Science
 
