@@ -1,329 +1,776 @@
-# FlightOnTime - Backend API
+# ✈️ FlightOnTime - Backend API
 
-## Sobre o Projeto
+<div align="center">
 
-Este é o backend do FlightOnTime, um sistema que ajuda a prever se um voo vai atrasar ou não.
+![Java](https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.12-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
+![Maven](https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apache-maven&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)
 
-A ideia é simples: você manda as informações de um voo (companhia aérea, origem, destino, horário, etc.) e a API retorna se o voo provavelmente será **Pontual** ou **Atrasado**, junto com a probabilidade dessa previsão.
+**Sistema inteligente de previsão de atrasos de voos usando Machine Learning**
 
-## Objetivo
+</div>
 
-Desenvolver uma API REST em Java com Spring Boot que atue como intermediário entre aplicações clientes e o modelo de Machine Learning de previsão de atrasos de voos.
+---
+
+## 📋 Índice
+
+- [Sobre o Projeto](#-sobre-o-projeto)
+- [Funcionalidades](#-funcionalidades)
+- [Arquitetura](#-arquitetura)
+- [Diagrama da Estrutura](#-diagrama-da-estrutura)
+- [Tecnologias Utilizadas](#-tecnologias-utilizadas)
+- [Estrutura do Projeto](#-estrutura-do-projeto)
+- [Como Executar](#-como-executar)
+- [Exemplos de Uso](#-exemplos-de-uso)
+- [Planejamento de Desenvolvimento](#-planejamento-de-desenvolvimento)
+- [Roadmap](#-roadmap)
+- [Contribuindo](#-contribuindo)
+
+---
+
+## 🎯 Sobre o Projeto
+
+**FlightOnTime** é uma API REST desenvolvida em Java com Spring Boot que utiliza Machine Learning para prever se um voo sofrerá atraso ou não. O sistema atua como intermediário inteligente entre aplicações cliente e o modelo de ML, fornecendo previsões precisas e confiáveis.
+
+### Como Funciona
+
+1. 📥 **Você envia** as informações do voo (companhia, origem, destino, data/hora, distância)
+2. ⚙️ **A API processa** e valida os dados
+3. 🤖 **O modelo de ML analisa** os padrões históricos
+4. 📊 **Você recebe** a previsão (Pontual/Atrasado) com a probabilidade
+
+### Objetivo Principal
+
+Desenvolver uma API REST robusta e escalável que:
+- Facilite a integração entre aplicações cliente e modelos de ML
+- Forneça previsões precisas sobre atrasos de voos
+- Garanta a qualidade e segurança dos dados processados
+- Ofereça uma experiência de usuário intuitiva
+
+---
+
+## ⚡ Funcionalidades
 
 ### Funcionalidades Principais
 
-- Receber dados de um voo via requisição HTTP POST
-- Validar se todas as informações necessárias foram enviadas corretamente
-- Comunicar-se com o microserviço Python que hospeda o modelo de ML
-- Processar a resposta do modelo e formatá-la adequadamente
-- Retornar previsão estruturada em formato JSON
-- Tratar erros de forma adequada e informativa
+- ✅ **Previsão de Atrasos**: Análise preditiva baseada em Machine Learning
+- 📝 **Validação de Dados**: Validação automática de todos os campos de entrada
+- 🔄 **Integração com ML**: Comunicação eficiente com microserviço Python
+- 📊 **Respostas Estruturadas**: Retorno padronizado em formato JSON
+- 🛡️ **Tratamento de Erros**: Sistema robusto de gerenciamento de exceções
+- 📚 **Documentação Interativa**: Swagger/OpenAPI integrado
+- 🔒 **Segurança**: Spring Security implementado
 
-## Arquitetura da Solução
 
-### Visão Geral
+---
 
-O sistema segue uma arquitetura de microserviços onde:
+## 🏗️ Arquitetura
 
-1. **API Gateway (Este Projeto)**: Aplicação Spring Boot que expõe endpoints REST e gerencia requisições
-2. **Serviço de ML**: Aplicação Python (FastAPI/Flask) que carrega e executa o modelo treinado
-3. **Comunicação**: HTTP/REST entre os dois serviços
+### Visão Geral do Sistema
 
-### Fluxo de Requisição
+O FlightOnTime segue uma **arquitetura de microserviços** moderna e escalável:
 
-```Java
-Cliente (Postman/App) 
-    ↓ POST /predict
-API Spring Boot (validação + transformação)
-    ↓ HTTP Request
-Serviço Python (modelo ML)
-    ↓ Resposta JSON
-API Spring Boot (formatação)
-    ↓ Response JSON
-Cliente recebe previsão
+```mermaid
+graph LR
+    A[Cliente<br/>Postman/App/Web] -->|HTTP POST| B[API Spring Boot<br/>Gateway]
+    B -->|Validação| C{Dados Válidos?}
+    C -->|Não| D[Erro 400<br/>Bad Request]
+    C -->|Sim| E[Transformação<br/>de Dados]
+    E -->|HTTP Request| F[Serviço Python<br/>ML Model]
+    F -->|Previsão JSON| G[Processamento<br/>Resposta]
+    G -->|HTTP Response| A
+    
+    style B fill:#6DB33F
+    style F fill:#3776AB
+    style D fill:#FF6B6B
 ```
 
-### Estrutura do Projeto
+### Componentes da Arquitetura
 
-```Java
-src/
-├── main/
-│   ├── java/com/backend/
-│   │   ├── controller/          # Camada de apresentação (REST endpoints)
-│   │   │   └── PredictionController.java
-│   │   ├── service/             # Camada de negócio
-│   │   │   ├── PredictionService.java
-│   │   │   └── MLServiceClient.java
-│   │   ├── dto/                 # Data Transfer Objects
-│   │   │   ├── FlightPredictionRequest.java
-│   │   │   ├── FlightPredictionResponse.java
-│   │   │   └── MLServiceResponse.java
-│   │   ├── config/              # Configurações
-│   │   │   └── RestTemplateConfig.java
-│   │   ├── exception/           # Tratamento de exceções
-│   │   │   ├── GlobalExceptionHandler.java
-│   │   │   ├── InvalidRequestException.java
-│   │   │   └── MLServiceException.java
-│   │   └── BackendApplication.java
-│   └── resources/
-│       ├── application.properties
-│       └── application-dev.properties
-└── test/
-    └── java/com/flightontime/
-        ├── controller/
-        └── service/
+#### 1. **API Gateway (Spring Boot)** 🟢
+- Expõe endpoints REST públicos
+- Valida requisições de entrada
+- Gerencia autenticação e autorização
+- Trata erros e exceções
+- Documenta API com Swagger
+
+#### 2. **Serviço de ML (Python)** 🔵
+- Hospeda o modelo de Machine Learning treinado
+- Processa requisições de previsão
+- Retorna probabilidades e classificações
+- Framework: FastAPI ou Flask
+
+#### 3. **Comunicação**
+- Protocolo: HTTP/REST
+- Formato: JSON
+- Timeout configurável
+- Retry logic para falhas temporárias
+
+### Fluxo de Requisição Detalhado
+
+```
+┌─────────────┐
+│   Cliente   │
+└──────┬──────┘
+       │ 1. POST /api/v1/predict
+       ▼
+┌─────────────────────────┐
+│  PredictionController   │
+│  - Recebe Request       │
+│  - Valida com @Valid    │
+└──────────┬──────────────┘
+           │ 2. Delega processamento
+           ▼
+┌─────────────────────────┐
+│   PredictionService     │
+│  - Lógica de negócio    │
+│  - Transforma dados     │
+└──────────┬──────────────┘
+           │ 3. Chama serviço externo
+           ▼
+┌─────────────────────────┐
+│    MLServiceClient      │
+│  - RestTemplate         │
+│  - HTTP POST            │
+└──────────┬──────────────┘
+           │ 4. Request ao Python
+           ▼
+┌─────────────────────────┐
+│   Serviço Python ML     │
+│  - Executa modelo       │
+│  - Retorna previsão     │
+└──────────┬──────────────┘
+           │ 5. Response JSON
+           ▼
+┌─────────────────────────┐
+│   PredictionService     │
+│  - Processa resposta    │
+│  - Mapeia valores       │
+└──────────┬──────────────┘
+           │ 6. Retorna ao Controller
+           ▼
+┌─────────────────────────┐
+│  PredictionController   │
+│  - Formata Response     │
+│  - HTTP 200 OK          │
+└──────────┬──────────────┘
+           │ 7. Response ao Cliente
+           ▼
+       ┌────────┐
+       │ Cliente│
+       └────────┘
 ```
 
-## Planejamento de Desenvolvimento
+---
 
-### Fase 1: Configuração Inicial
+## 📊 Diagrama da Estrutura
+
+### Estrutura de Pacotes
+
+```
+com.backend.fot
+│
+├── 📱 FotApplication.java          # Classe principal Spring Boot
+│
+├── 🎮 controller/                   # Camada de Apresentação
+│   └── PredictionController.java   # Endpoints REST
+│
+├── ⚙️ service/                      # Camada de Negócio
+│   ├── PredictionService.java      # Lógica de previsão
+│   └── MLServiceClient.java        # Cliente HTTP para ML
+│
+├── 📦 dto/                          # Data Transfer Objects
+│   ├── FlightPredictionRequestDTO.java   # Entrada da API
+│   ├── FlightPredictionResponseDTO.java  # Saída da API
+│   └── MLServiceResponseDTO.java         # Resposta do Python
+│
+├── 🔢 enums/                        # Enumerações
+│   └── FlightPrediction.java       # ON_TIME | DELAYED
+│
+├── ⚙️ config/                       # Configurações
+│   ├── RestTemplateConfig.java     # Bean RestTemplate
+│   └── SecurityConfig.java         # Configuração Security
+│
+└── 🚨 exception/                    # Tratamento de Erros
+    ├── GlobalExceptionHandler.java # Handler global
+    ├── InvalidRequestException.java
+    └── MLServiceException.java
+```
+
+### Estrutura de Diretórios Completa
+
+```
+FlightOnTime/
+│
+├── 📄 README.md                    # Documentação principal
+├── 📄 LICENSE                      # Licença do projeto
+├── 📄 Ideas.txt                    # Ideias e melhorias futuras
+│
+└── fot/                            # Módulo principal Maven
+    ├── 📄 pom.xml                  # Dependências Maven
+    ├── 🔧 mvnw                     # Maven Wrapper (Linux/Mac)
+    ├── 🔧 mvnw.cmd                 # Maven Wrapper (Windows)
+    │
+    ├── src/
+    │   ├── main/
+    │   │   ├── java/
+    │   │   │   └── com/backend/fot/
+    │   │   │       ├── FotApplication.java
+    │   │   │       ├── controller/
+    │   │   │       ├── service/
+    │   │   │       ├── dto/
+    │   │   │       ├── enums/
+    │   │   │       ├── config/
+    │   │   │       └── exception/
+    │   │   │
+    │   │   └── resources/
+    │   │       ├── application.properties      # Configurações principais
+    │   │       ├── application-dev.properties  # Ambiente desenvolvimento
+    │   │       └── application-prod.properties # Ambiente produção
+    │   │
+    │   └── test/
+    │       └── java/
+    │           └── com/backend/fot/
+    │               ├── FotApplicationTests.java
+    │               ├── controller/
+    │               └── service/
+    │
+    └── target/                     # Artefatos compilados (gerado)
+        ├── classes/
+        ├── generated-sources/
+        └── test-classes/
+```
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+### Backend
+
+| Tecnologia | Versão | Descrição |
+|------------|--------|-----------|
+| ☕ **Java** | 17 | Linguagem de programação |
+| 🍃 **Spring Boot** | 3.2.12 | Framework principal |
+| 🌐 **Spring Web** | - | Criação de REST APIs |
+| 🔒 **Spring Security** | - | Autenticação e autorização |
+| ✅ **Spring Validation** | - | Validação de dados |
+| 🎨 **Thymeleaf** | - | Template engine |
+| 🧰 **Lombok** | - | Redução de boilerplate |
+| 🔄 **Spring DevTools** | - | Hot reload em desenvolvimento |
+
+### Documentação
+
+| Tecnologia | Versão | Descrição |
+|------------|--------|-----------|
+| 📚 **SpringDoc OpenAPI** | 2.7.0 | Documentação Swagger/OpenAPI |
+
+### Build & Deploy
+
+| Ferramenta | Descrição |
+|------------|-----------|
+| 🔨 **Maven** | Gerenciador de dependências |
+| 🐳 **Docker** | Containerização (planejado) |
+
+---
+
+## 📂 Estrutura do Projeto
+
+
+### Responsabilidades de Cada Camada
+
+#### 🎮 Controller (Camada de Apresentação)
+
+- Recebe requisições HTTP
+- Valida dados de entrada com `@Valid`
+- Retorna respostas HTTP apropriadas
+- **NÃO contém lógica de negócio**
+
+#### ⚙️ Service (Camada de Negócio)
+
+- Processa lógica de negócio
+- Transforma dados entre formatos
+- Coordena comunicação entre componentes
+- Gerencia transações (se necessário)
+
+#### 📦 DTO (Data Transfer Objects)
+
+- Define contratos da API
+- Valida dados com Bean Validation
+- Garante type-safety
+- Facilita serialização JSON
+
+#### 🔢 Enums
+
+- Define valores constantes e válidos
+- Melhora legibilidade do código
+- Previne erros com valores inválidos
+
+---
+
+## 🚀 Como Executar
+
+### Pré-requisitos
+
+- ☕ **Java 17** ou superior
+- 🔨 **Maven 3.8+** (ou usar o Maven Wrapper incluído)
+- 🐍 **Python 3.8+** (para o serviço de ML)
+- 📦 **Git**
+
+### Passo 1: Clone o Repositório
+
+```bash
+git clone https://github.com/Mateus-Redivo/FlightOnTime.git
+cd FlightOnTime/fot
+```
+
+### Passo 2: Configure o application.properties
+
+Edite o arquivo `src/main/resources/application.properties`:
+
+```properties
+# Porta da aplicação
+server.port=8080
+
+# URL do serviço Python de ML
+ml.service.url=http://localhost:5000/predict
+ml.service.timeout=5000
+
+# Logging
+logging.level.com.backend.fot=DEBUG
+```
+
+### Passo 3: Compile e Execute
+
+#### Usando Maven Wrapper (Recomendado)
+
+```bash
+# Linux/Mac
+./mvnw clean install
+./mvnw spring-boot:run
+
+# Windows
+mvnw.cmd clean install
+mvnw.cmd spring-boot:run
+```
+
+#### Usando Maven Instalado
+
+```bash
+mvn clean install
+mvn spring-boot:run
+```
+
+### Passo 4: Acesse a Aplicação
+
+- 🌐 **API**: `http://localhost:8080`
+- 📚 **Swagger UI**: `http://localhost:8080/swagger-ui.html`
+- 📖 **API Docs**: `http://localhost:8080/v3/api-docs`
+
+---
+
+## 📝 Exemplos de Uso
+
+### Usando cURL
+
+#### Requisição de Previsão
+
+```bash
+curl -X POST http://localhost:8080/api/v1/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "flightNumber": "AZ1234",
+    "companyName": "AZ",
+    "flightOrigin": "GIG",
+    "flightDestination": "GRU",
+    "flightDepartureDate": "2025-12-20T14:30:00Z",
+    "flightDistance": 350
+  }'
+```
+
+#### Resposta de Sucesso (200 OK)
+
+```json
+{
+  "prediction": "DELAYED",
+  "probability": 0.78
+}
+```
+
+**Interpretação**: Este voo tem **78% de probabilidade** de atrasar.
+
+### Usando Postman
+
+1. Importe a collection disponível em `/docs/postman_collection.json`
+2. Configure a variável `base_url` para `http://localhost:8080`
+3. Execute as requisições de exemplo
+
+### Formato dos Dados
+
+#### 📥 Request (FlightPredictionRequestDTO)
+
+| Campo | Tipo | Obrigatório | Validação | Exemplo |
+|-------|------|-------------|-----------|---------|
+| `flightNumber` | String | ✅ | Max 6 caracteres | "AZ1234" |
+| `companyName` | String | ✅ | Exatamente 3 caracteres | "AZ" |
+| `flightOrigin` | String | ✅ | Código IATA (3 letras) | "GIG" |
+| `flightDestination` | String | ✅ | Código IATA (3 letras) | "GRU" |
+| `flightDepartureDate` | Date | ✅ | ISO-8601, futuro/presente | "2025-12-20T14:30:00Z" |
+| `flightDistance` | Integer | ✅ | Maior que 0 | 350 |
+
+#### 📤 Response (FlightPredictionResponseDTO)
+
+| Campo | Tipo | Descrição | Valores Possíveis |
+|-------|------|-----------|-------------------|
+| `prediction` | Enum | Resultado da previsão | `ON_TIME`, `DELAYED` |
+| `probability` | Double | Confiança da previsão | 0.0 a 1.0 |
+
+### Tratamento de Erros
+
+#### Erro de Validação (400 Bad Request)
+
+```json
+{
+  "timestamp": "2025-12-15T14:30:00",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Validação falhou",
+  "errors": [
+    {
+      "field": "flightOrigin",
+      "message": "Código IATA deve ter exatamente 3 caracteres"
+    },
+    {
+      "field": "flightDistance",
+      "message": "Distância deve ser maior que 0"
+    }
+  ]
+}
+```
+
+#### Serviço ML Indisponível (503 Service Unavailable)
+
+```json
+{
+  "timestamp": "2025-12-15T14:30:00",
+  "status": 503,
+  "error": "Service Unavailable",
+  "message": "Serviço de previsão temporariamente indisponível"
+}
+```
+
+---
+
+## 📋 Planejamento de Desenvolvimento
+
+
+### 📅 Roadmap de Implementação
+
+O desenvolvimento está dividido em **6 fases** progressivas:
+
+```text
+Fase 1 ──> Fase 2 ──> Fase 3 ──> Fase 4 ──> Fase 5 ──> Fase 6
+  ⬇         ⬇         ⬇         ⬇         ⬇         ⬇
+Setup     DTOs    Controller  Service   Errors    Tests
+```
+
+---
+
+### 🔧 Fase 1: Configuração Inicial
 
 **Objetivo**: Preparar o ambiente e estrutura base do projeto
 
-**Atividades**:
+#### Atividades
 
-- Criar projeto Spring Boot via Spring Initializr ou Maven
-- Configurar dependências no `pom.xml`:
-  - Spring Web (para criar REST APIs)
-  - Spring Boot Validation (para validação de dados)
-  - Lombok (para reduzir código boilerplate)
-  - Spring Boot DevTools (para hot reload durante desenvolvimento)
-- Configurar `application.properties` com porta e URL do serviço ML
-- Validar que a aplicação inicia sem erros
+- ✅ Criar projeto Spring Boot via Spring Initializr
+- ✅ Configurar `pom.xml` com dependências:
+  - Spring Web
+  - Spring Boot Validation
+  - Spring Security
+  - Lombok
+  - Spring DevTools
+  - SpringDoc OpenAPI
+- ✅ Configurar `application.properties`
+- ✅ Validar que a aplicação inicia sem erros
 
-**Entregável**: Projeto compila e aplicação Spring Boot inicia com sucesso
+#### Resultado da Fase 1
 
----
-
-### Fase 2: Implementação dos DTOs
-
-**Objetivo**: Criar os objetos de transferência de dados que definem contratos da API
-
-**FlightPredictionRequest** (Entrada da API):
-
-```java
-{
-  "companhia": String (obrigatório, 2 caracteres)
-  "origem": String (obrigatório, código IATA 3 letras)
-  "destino": String (obrigatório, código IATA 3 letras)
-  "data_partida": LocalDateTime (obrigatório, formato ISO-8601)
-  "distancia_km": Integer (obrigatório, > 0)
-}
-```
-
-**Validações**:
-
-- `@NotNull` e `@NotBlank` para campos obrigatórios
-- `@Size` para limitar tamanho de strings
-- `@Positive` para distância
-- `@Future` para data de partida (opcional, dependendo do caso de uso)
-
-**FlightPredictionResponse** (Saída da API):
-
-```java
-{
-  "previsao": String ("Pontual" ou "Atrasado")
-  "probabilidade": Double (0.0 a 1.0)
-}
-```
-
-**MLServiceResponse** (Resposta do serviço Python):
-
-```java
-{
-  "prediction": Integer (0 ou 1)
-  "probability": Double (0.0 a 1.0)
-}
-```
-
-**Entregável**: Classes DTO criadas com anotações de validação
+✅ Projeto compila e aplicação Spring Boot inicia com sucesso
 
 ---
 
-### Fase 3: Desenvolvimento do Controller
+### 📦 Fase 2: Implementação dos DTOs
 
-**Objetivo**: Implementar o endpoint REST que recebe requisições
+**Objetivo**: Criar objetos de transferência de dados
 
-**PredictionController**:
+#### Classes a Implementar
 
-- Endpoint: `POST /api/v1/predict`
-- Recebe `FlightPredictionRequest` validado com `@Valid`
-- Retorna `ResponseEntity<FlightPredictionResponse>`
-- Status HTTP 200 para sucesso
-- Delega processamento para `PredictionService`
+1. **FlightPredictionRequestDTO**
+   - Campos: `flightNumber`, `companyName`, `flightOrigin`, `flightDestination`, `flightDepartureDate`, `flightDistance`
+   - Validações: `@NotNull`, `@NotBlank`, `@Size`, `@Positive`, `@FutureOrPresent`
 
-**Responsabilidades**:
+2. **FlightPredictionResponseDTO**
+   - Campos: `prediction` (Enum), `probability` (Double)
+
+3. **MLServiceResponseDTO**
+   - Campos: `prediction` (Integer), `probability` (Double)
+
+4. **FlightPrediction (Enum)**
+   - Valores: `ON_TIME`, `DELAYED`
+
+#### Resultado da Fase 2
+
+✅ Classes DTO criadas com anotações de validação e documentação Swagger
+
+---
+
+### 🎮 Fase 3: Desenvolvimento do Controller
+
+**Objetivo**: Implementar endpoints REST
+
+#### PredictionController
+
+```java
+@RestController
+@RequestMapping("/api/v1")
+public class PredictionController {
+    
+    @PostMapping("/predict")
+    public ResponseEntity<FlightPredictionResponseDTO> predictDelay(
+        @Valid @RequestBody FlightPredictionRequestDTO request
+    ) {
+        // Delega para o Service
+    }
+}
+```
+
+#### Responsabilidades
 
 - Receber e validar entrada
 - Invocar camada de serviço
 - Retornar resposta HTTP apropriada
-- Não contém lógica de negócio
+- **Sem lógica de negócio**
 
-**Entregável**: Controller funcional que responde requisições HTTP
+#### Resultado da Fase 3
+
+✅ Controller funcional que responde requisições HTTP
 
 ---
 
-### Fase 4: Implementação do Service Layer
+### ⚙️ Fase 4: Implementação do Service Layer
 
-**Objetivo**: Criar lógica de negócio e integração com serviço ML
+**Objetivo**: Criar lógica de negócio e integração com ML
 
-**PredictionService**:
+#### PredictionService
 
-- Recebe `FlightPredictionRequest`
-- Transforma dados para formato esperado pelo modelo
+- Recebe `FlightPredictionRequestDTO`
+- Transforma dados para formato do modelo
 - Invoca `MLServiceClient`
-- Converte resposta do modelo para `FlightPredictionResponse`
-- Mapeia valores (0 → "Pontual", 1 → "Atrasado")
+- Converte resposta: `0 → ON_TIME`, `1 → DELAYED`
+- Retorna `FlightPredictionResponseDTO`
 
-**MLServiceClient**:
+#### MLServiceClient
 
-- Configura `RestTemplate` ou `WebClient`
-- Faz chamada HTTP POST para serviço Python
-- URL configurável via `application.properties`
+- Configura `RestTemplate`
+- Faz chamada HTTP POST para Python
+- URL configurável via properties
 - Trata timeouts e erros de conexão
-- Deserializa resposta JSON
+- Deserializa JSON
 
-**Configuração**:
+#### Configuração
 
 ```properties
 ml.service.url=http://localhost:5000/predict
 ml.service.timeout=5000
 ```
 
-**Entregável**: Integração funcional com serviço Python
+#### Resultado da Fase 4
+
+✅ Integração funcional com serviço Python
 
 ---
 
-### Fase 5: Tratamento de Erros
+### 🚨 Fase 5: Tratamento de Erros
 
 **Objetivo**: Implementar tratamento robusto de exceções
 
-**GlobalExceptionHandler** (`@ControllerAdvice`):
+#### GlobalExceptionHandler (`@ControllerAdvice`)
 
 Trata múltiplos cenários:
 
-1. **Validação de Entrada** (`MethodArgumentNotValidException`):
-   - Status: 400 Bad Request
-   - Retorna lista de erros de validação
+| Exceção | Status | Descrição |
+|---------|--------|-----------|
+| `MethodArgumentNotValidException` | 400 | Validação de entrada falhou |
+| `ResourceAccessException` | 503 | Serviço ML indisponível |
+| `MLServiceException` | 502 | Erro ao processar previsão |
+| `Exception` | 500 | Erro interno genérico |
 
-2. **Serviço ML Indisponível** (`ResourceAccessException`):
-   - Status: 503 Service Unavailable
-   - Mensagem: "Serviço de previsão temporariamente indisponível"
-
-3. **Resposta Inválida do ML** (`MLServiceException`):
-   - Status: 502 Bad Gateway
-   - Mensagem: "Erro ao processar previsão"
-
-4. **Erros Genéricos** (`Exception`):
-   - Status: 500 Internal Server Error
-   - Mensagem genérica (sem expor detalhes internos)
-
-**Formato de Erro Padronizado**:
+#### Formato de Erro Padronizado
 
 ```json
 {
-  "timestamp": "2025-12-08T14:30:00",
+  "timestamp": "2025-12-15T14:30:00",
   "status": 400,
   "error": "Bad Request",
   "message": "Validação falhou",
   "errors": [
     {
-      "field": "origem",
+      "field": "flightOrigin",
       "message": "Código IATA deve ter 3 caracteres"
     }
   ]
 }
 ```
 
-**Entregável**: API retorna erros estruturados e informativos
+#### Resultado da Fase 5
+
+✅ API retorna erros estruturados e informativos
 
 ---
 
-### Fase 6: Testes e Documentação
+### 🧪 Fase 6: Testes e Documentação
 
-**Objetivo**: Garantir qualidade e facilitar uso da API
+**Objetivo**: Garantir qualidade e facilitar uso
 
-**Testes Unitários**:
+#### Testes Unitários
 
-- Testar validações dos DTOs
-- Testar lógica de transformação no Service
-- Mockar chamadas ao serviço ML
-- Testar tratamento de exceções
+- ✅ Testar validações dos DTOs
+- ✅ Testar lógica do Service
+- ✅ Mockar chamadas ao ML
+- ✅ Testar tratamento de exceções
 
-**Testes de Integração** (opcional):
+#### Testes de Integração
 
-- Testar endpoint completo com WireMock
-- Simular respostas do serviço Python
+- Testar endpoint completo
+- Usar WireMock para simular Python
+- Validar fluxo end-to-end
 
-**Documentação**:
+#### Documentação da API
 
-- Atualizar README com instruções de execução
-- Criar collection do Postman com exemplos
-- Documentar variáveis de ambiente necessárias
-- Adicionar exemplos de cURL
+- ✅ README atualizado
+- ✅ Swagger/OpenAPI configurado
+- ✅ Collection do Postman
+- ✅ Exemplos de cURL
 
-**Entregável**: Testes passando e documentação completa
+#### Resultado da Fase 6
 
----
-
-## Exemplos de Uso
-
-**O que você envia:**
-
-```json
-{
-  "companhia": "AZ",
-  "origem": "GIG",
-  "destino": "GRU",
-  "data_partida": "2025-11-10T14:30:00",
-  "distancia_km": 350
-}
-```
-
-**O que você recebe:**
-
-```json
-{
-  "previsao": "Atrasado",
-  "probabilidade": 0.78
-}
-```
-
-Isso significa: "Este voo tem 78% de chance de atrasar"
-
-## Próximos Passos
-
-1. Configurar o ambiente de desenvolvimento (JDK, IDE, Maven)
-2. Criar o projeto Spring Boot
-3. Alinhar com o time de Data Science sobre o formato dos dados
-4. Começar a implementação seguindo as etapas acima
-
-## Funcionalidades Extras (Se Der Tempo)
-
-### 1. Front-end com Thymeleaf
-
-Adicionar dependência `spring-boot-starter-thymeleaf` e criar páginas HTML em `templates/` com formulário de entrada e exibição de resultados.
-
-### 2. PostgreSQL + Looker Studio
-
-Adicionar `spring-boot-starter-data-jpa` e `postgresql` no pom.xml, configurar conexão no `application.properties` e criar entidade JPA para salvar histórico de previsões.
-Conectar o Looker Studio ao PostgreSQL para criar dashboards de análise.
-
-### 3. Outras Funcionalidades
-
-- Criar endpoint para estatísticas (ex: % de voos atrasados no dia)
-- Fazer testes automatizados
-- Containerizar com Docker
-- Implementar cache com Redis para previsões frequentes
-
-## Integração com Data Science
-
-**Importante:** Precisamos combinar com o time de DS:
-
-- Em que porta/URL o serviço Python vai rodar
-- Se o formato de entrada/saída está alinhado
-- Como vamos testar a integração
+✅ Testes passando e documentação completa
 
 ---
 
-**Lembre-se:** Este é um MVP (Produto Mínimo Viável). O objetivo é fazer funcionar de forma simples primeiro, e depois melhorar se houver tempo!
+## 🗺️ Roadmap
+
+### ✅ Concluído
+
+- [x] Setup inicial do projeto
+- [x] Implementação dos DTOs
+- [x] Configuração Spring Security
+- [x] Documentação Swagger
+- [x] Estrutura de pacotes
+
+### 🔄 Em Progresso
+
+- [ ] Implementação do Controller
+- [ ] Implementação do Service Layer
+- [ ] Integração com serviço Python ML
+
+### 📅 Planejado
+
+#### Fase Atual (MVP)
+
+- [ ] Tratamento global de exceções
+- [ ] Testes unitários completos
+- [ ] Testes de integração
+- [ ] CI/CD com GitHub Actions
+
+#### Funcionalidades Futuras
+
+- [ ] **Front-end com Thymeleaf**
+  - Interface web para testar previsões
+  - Dashboard de estatísticas
+
+- [ ] **Persistência de Dados**
+  - Integração com PostgreSQL
+  - Histórico de previsões
+  - Auditoria de requisições
+
+- [ ] **Analytics e BI**
+  - Dashboards com Looker Studio
+  - Métricas de precisão do modelo
+  - Análise de padrões
+
+- [ ] **Cache e Performance**
+  - Redis para cache de previsões
+  - Otimização de consultas frequentes
+
+- [ ] **Containerização**
+  - Dockerfile para aplicação
+  - Docker Compose com Python ML
+  - Orquestração com Kubernetes
+
+- [ ] **API Avançada**
+  - Endpoint de estatísticas
+  - Previsões em batch
+  - WebSocket para updates em tempo real
+
+- [ ] **Segurança Avançada**
+  - JWT authentication
+  - Rate limiting
+  - API Keys
+
+---
+
+## 🤝 Contribuindo
+
+Contribuições são bem-vindas! Para contribuir:
+
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+### Padrões de Código
+
+- Siga as convenções de código Java
+- Use Lombok para reduzir boilerplate
+- Documente métodos públicos
+- Escreva testes para novas funcionalidades
+- Mantenha cobertura de testes > 80%
+
+---
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+---
+
+## 👥 Equipe
+
+- **Backend Development**: Java Spring Boot
+- **Data Science**: Python ML Model
+- **DevOps**: CI/CD & Deployment
+
+---
+
+## 📞 Contato
+
+Para dúvidas ou sugestões:
+
+- **GitHub**: [@Mateus-Redivo](https://github.com/Mateus-Redivo)
+- **Issues**: [GitHub Issues](https://github.com/Mateus-Redivo/FlightOnTime/issues)
+
+---
+
+## 🙏 Agradecimentos
+
+- Spring Framework Team
+- Comunidade Java/Spring Boot
+- Contribuidores do projeto
+
+---
+
+Feito com ❤️ e ☕ pela equipe FlightOnTime
+
+[⬆ Voltar ao topo](#️-flightontime---backend-api)
