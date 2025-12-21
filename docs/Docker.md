@@ -399,7 +399,6 @@ Configuração dos serviços:
 ## 🔗 Próximos Passos
 
 - Veja [README.md](README.md) para entender o fluxo de dados completo
-- Veja [Development.md](Development.md) para desenvolvimento com hot-reload
 
 ---
 
